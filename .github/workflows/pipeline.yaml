@@ -37,7 +37,7 @@ jobs:
 
     - name: Authenticate to Docker Registry
       run: |
-        make docker-login DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} DOCKER_PASSWORD={{ secrets.DOCKER_PASSWORD }}
+        make docker-login DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
 
     - name: Build the Project Container Images
       run: |
