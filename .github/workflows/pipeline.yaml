@@ -1,0 +1,99 @@
+name: Vue Application Workflow
+
+on:
+  push:
+    branches:
+      - dev
+
+# env:
+#   API_IMG_NAME: todo-api
+#   API_DOCKERFILE: Dockerfile.api
+#   WEB_IMG_NAME: todo-web
+#   WEB_DOCKERFILE: Dockerfile.web
+#   API_DEPLOYMENT: todo-api
+#   WEB_DEPLOYMENT: todo-web
+
+jobs:
+  build-and-push-container:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Check Makefile
+      run: make --version
+
+  #   - name: Create and populate .env file for api application
+  #     run: |
+  #       echo 'Creating .env file for the api application'
+  #       pushd "backend"; echo SECRET_KEY=${{ secrets.SECRET_KEY }} > .env; popd;
+  #       pushd "backend"; echo POSTGRES_PORT=5432 >> .env; popd;
+  #       pushd "backend"; echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env; popd;
+  #       pushd "backend"; echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env; popd;
+  #       pushd "backend"; echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env; popd;
+  #       pushd "backend"; echo DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_SERVER }}:5432/${{ secrets.POSTGRES_DB }} >> .env; popd;
+        
+  #   - name: Create and populate .env file for web application
+  #     run: |
+  #       echo 'Creating .env file for the web application'
+  #       pushd "frontend"; echo REACT_BASE_API_URL=${{ secrets.API_URL }} > .env; popd;
+
+  #   - name: Build the api container image
+  #     run: |
+  #       docker build backend -f containers/${{ env.API_DOCKERFILE }} -t ${{ secrets.DOCKER_USERNAME }}/${{ env.API_IMG_NAME }}:${{ github.sha }}
+
+  #   - name: Build the web container image
+  #     run: |
+  #       docker build frontend -f containers/${{ env.WEB_DOCKERFILE }} -t ${{ secrets.DOCKER_USERNAME }}/${{ env.WEB_IMG_NAME }}:${{ github.sha }}
+
+  #   - name: Push the web and api images to the registry
+  #     run: |
+  #       echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+  #       docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.API_IMG_NAME }}:${{ github.sha }}
+  #       docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.WEB_IMG_NAME }}:${{ github.sha }}
+
+  # deploy-container-to-eks:
+  #   needs: build-and-push-container
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #   - name: Checkout GitHub Action
+  #     uses: actions/checkout@v3
+  #     with:
+  #       token: ${{ secrets.GITHUB_TOKEN }}
+
+  #   - name: Authenticate to EKS
+  #     run: |
+  #       aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY }} --profile default
+  #       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }} --profile default
+  #       aws configure set default.region ${{ secrets.AWS_REGION }} --profile default
+  #       aws configure set default.output csv --profile default
+
+  #       aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER }}
+
+  #   - name: Create namespace if doesn't exist
+  #     run: |
+  #       kubectl create namespace ${{ env.API_DEPLOYMENT }} --dry-run -o json | kubectl apply -f -
+  #       kubectl create namespace ${{ env.WEB_DEPLOYMENT }} --dry-run -o json | kubectl apply -f -
+
+  #   - name: Install yq for updating the deployment manifests
+  #     run: |
+  #       sudo apt-get update
+  #       sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+  #       sudo chmod a+x /usr/local/bin/
+
+  #   - name: Update kubernetes deployment manifest
+  #     run: |
+  #       yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/${{ env.API_IMG_NAME }}:${{ github.sha }}"' kubernetes/backend/api-deployment.yaml
+  #       yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/${{ env.WEB_IMG_NAME }}:${{ github.sha }}"' kubernetes/frontend/web-deployment.yaml
+
+  #   - name: Deploy application to EKS
+  #     run: |
+  #       kubectl apply -f kubernetes/database
+  #       kubectl apply -f kubernetes/backend
+  #       kubectl apply -f kubernetes/frontend
+
+  #   - name: View Rollout Status
+  #     run: |
+  #       kubectl -n ${{ env.API_DEPLOYMENT }} rollout status deployment/${{ env.API_DEPLOYMENT }}
+  #       kubectl -n ${{ env.WEB_DEPLOYMENT }} rollout status deployment/${{ env.WEB_DEPLOYMENT }}
