@@ -5,13 +5,9 @@ on:
     branches:
       - dev
 
-# env:
-#   API_IMG_NAME: todo-api
-#   API_DOCKERFILE: Dockerfile.api
-#   WEB_IMG_NAME: todo-web
-#   WEB_DOCKERFILE: Dockerfile.web
-#   API_DEPLOYMENT: todo-api
-#   WEB_DEPLOYMENT: todo-web
+env:
+  IMG_TAG: v1.0.0
+  ENV: dev
 
 jobs:
   build-and-push-container:
@@ -39,7 +35,13 @@ jobs:
         curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
         sudo install skaffold /usr/local/bin/
 
-        skaffold --version
+    - name: Authenticate to Docker Registry
+      run: |
+        make docker-login DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} DOCKER_PASSWORD={{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build the Project Container Images
+      run: |
+        make skaffold-build DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} TAG=${{ env.IMG_TAG }} ENV=${{ env.ENV }}
 
   #   - name: Build the web container image
   #     run: |

@@ -4,20 +4,21 @@ CWD:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 DOCKER_USERNAME ?= default
 DOCKER_PASSWORD ?= default
 TAG ?= latest
+ENV ?= dev
 
 .PHONY: docker-login
 docker-login:
-	@echo 'Authenticating to Docker Registry ========> $(DOCKER_USERNAME)'
+	@echo 'Authenticating to Docker Registry ===============>'
 	@echo $(DOCKER_PASSWORD) | docker login --username $(DOCKER_USERNAME) --password-stdin
 
 .PHONY: skaffold-build
 skaffold-build:
-	@echo 'Building Project Container Images for $(DOCKER_USERNAME) with tag=$(TAG)'
-	@skaffold build  --platform linux/amd64 --default-repo=$(DOCKER_USERNAME) --push --tag $(TAG)
+	@echo 'Building Project Container Images for the $(ENV) Environment with tag=$(TAG)'
+	@skaffold build  --platform linux/amd64 --default-repo=$(DOCKER_USERNAME) --push --tag $(ENV)-$(TAG)
 
 .PHONY: deploy-apps
 deploy-apps:
-	@echo 'Deploying the applications to k8s cluster'
+	@echo 'Deploying the applications to k8s cluster ==============>'
 	@kubectl apply -f kubernetes
 
 .PHONY: run-app
