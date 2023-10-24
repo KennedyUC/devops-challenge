@@ -21,27 +21,25 @@ jobs:
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Check Skaffold
-      run: skaffold --version
 
-  #   - name: Create and populate .env file for api application
-  #     run: |
-  #       echo 'Creating .env file for the api application'
-  #       pushd "backend"; echo SECRET_KEY=${{ secrets.SECRET_KEY }} > .env; popd;
-  #       pushd "backend"; echo POSTGRES_PORT=5432 >> .env; popd;
-  #       pushd "backend"; echo POSTGRES_DB=${{ secrets.POSTGRES_DB }} >> .env; popd;
-  #       pushd "backend"; echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env; popd;
-  #       pushd "backend"; echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env; popd;
-  #       pushd "backend"; echo DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_SERVER }}:5432/${{ secrets.POSTGRES_DB }} >> .env; popd;
+    - name: Create .env for the Flask App
+      run: |
+        echo 'Creating .env file for the Flask App'
+        pushd "components/api"; echo ZONE_ID=${{ secrets.ZONE_ID }} > .env; popd;
+        pushd "components/api"; echo CF_API_KEY=${{ secrets.CF_API_KEY }} >> .env; popd;
+        pushd "components/api"; echo CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} >> .env; popd;
         
-  #   - name: Create and populate .env file for web application
-  #     run: |
-  #       echo 'Creating .env file for the web application'
-  #       pushd "frontend"; echo REACT_BASE_API_URL=${{ secrets.API_URL }} > .env; popd;
+    - name: Create .env file for Vue Web App
+      run: |
+        echo 'Creating .env file for the Vue Web App'
+        pushd "components/web"; echo VUE_APP_PROXY_URL=http://127.0.0.1:5000/ > .env; popd;
 
-  #   - name: Build the api container image
-  #     run: |
-  #       docker build backend -f containers/${{ env.API_DOCKERFILE }} -t ${{ secrets.DOCKER_USERNAME }}/${{ env.API_IMG_NAME }}:${{ github.sha }}
+    - name: Install Skaffold for App Builds
+      run: |
+        curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
+        sudo install skaffold /usr/local/bin/
+
+        skaffold --version
 
   #   - name: Build the web container image
   #     run: |
