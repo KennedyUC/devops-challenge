@@ -37,51 +37,57 @@ jobs:
     - name: Check Branch Name
       run: echo "I'm using variable ${{ steps.project-env.outputs.env_name }}"
 
-    - name: Get short SHA
+    - name: Get Short Github Commit SHA
       id: commit-sha
       run: |
-        echo "SHA=$(echo ${GITHUB_SHA} | cut -c1-4)" >> $GITHUB_OUTPUT
+        echo "SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
         
     - name: Check Github SHA
       run: echo "The Github SHA is ${{ steps.commit-sha.outputs.SHA }}"
 
-  # build-and-push-containers:
-  #   runs-on: ubuntu-20.04
-  #   needs: set-environment
-  #   env:
-  #     ENV: ${{ needs.set-environment.outputs.ENV }}
-  #     IMG_TAG: ${{ needs.set-environment.outputs.SHA }}
+  build-and-push-containers:
+    runs-on: ubuntu-20.04
+    needs: set-environment
+    env:
+      ENV: ${{ needs.set-environment.outputs.ENV }}
+      IMG_TAG: ${{ needs.set-environment.outputs.SHA }}
       
-  #   steps:
-  #   - name: Checkout GitHub Action
-  #     uses: actions/checkout@v3
-  #     with:
-  #       token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - name: Checkout GitHub Action
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
-  #   - name: Create .env for the Flask App
-  #     run: |
-  #       echo 'Creating Flask App .env file for ${{ env.ENV }} environment'
-  #       pushd "components/api"; echo ZONE_ID=${{ secrets.ZONE_ID }} > .env; popd;
-  #       pushd "components/api"; echo CF_API_KEY=${{ secrets.CF_API_KEY }} >> .env; popd;
-  #       pushd "components/api"; echo CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} >> .env; popd;
+    - name: Check Github SHA
+      run: echo "The Github SHA is ${{ env.IMG_TAG }}"
+
+    - name: Check ENV
+      run: echo "The ENV is ${{ env.ENV }}"
+
+    # - name: Create .env for the Flask App
+    #   run: |
+    #     echo 'Creating Flask App .env file for ${{ env.ENV }} environment'
+    #     pushd "components/api"; echo ZONE_ID=${{ secrets.ZONE_ID }} > .env; popd;
+    #     pushd "components/api"; echo CF_API_KEY=${{ secrets.CF_API_KEY }} >> .env; popd;
+    #     pushd "components/api"; echo CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} >> .env; popd;
         
-  #   - name: Create .env file for Vue Web App
-  #     run: |
-  #       echo 'Creating Vue Web App .env file for ${{ env.ENV }} environment'
-  #       pushd "components/web"; echo VUE_APP_PROXY_URL=http://127.0.0.1:5000/ > .env; popd;
+    # - name: Create .env file for Vue Web App
+    #   run: |
+    #     echo 'Creating Vue Web App .env file for ${{ env.ENV }} environment'
+    #     pushd "components/web"; echo VUE_APP_PROXY_URL=http://127.0.0.1:5000/ > .env; popd;
 
-  #   - name: Install Skaffold for App Builds
-  #     run: |
-  #       curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
-  #       sudo install skaffold /usr/local/bin/
+    # - name: Install Skaffold for App Builds
+    #   run: |
+    #     curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64 && \
+    #     sudo install skaffold /usr/local/bin/
 
-  #   - name: Authenticate to Docker Registry
-  #     run: |
-  #       make docker-login DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
+    # - name: Authenticate to Docker Registry
+    #   run: |
+    #     make docker-login DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} DOCKER_PASSWORD=${{ secrets.DOCKER_PASSWORD }}
 
-  #   - name: Build the Project Container Images
-  #     run: |
-  #       make skaffold-build DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} TAG=${{ env.IMG_TAG }} ENV=${{ env.ENV }}
+    # - name: Build the Project Container Images
+    #   run: |
+    #     make skaffold-build DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} TAG=${{ env.IMG_TAG }} ENV=${{ env.ENV }}
 
   # build-infrastructure:
   #   needs: build-and-push-containers
