@@ -101,10 +101,10 @@ jobs:
 
     - name: Provision EKS with Terraform apply
       run: |
-        pushd "terraform/${{ env.ENV }}"; \
+        cd terraform/${{ env.ENV }}
         terraform apply -auto-approve -var-file="vars.tfvars" -var="user_access_key=${{ secrets.AWS_ACCESS_KEY }}" \
                                       -var="user_secret_key=${{ secrets.AWS_SECRET_KEY }}" -var="aws_region=${{ secrets.AWS_REGION }}" \
-                                      -var="env=${{ env.ENV }} -var="project_name=${{ env.PROJECT_NAME }}"; popd
+                                      -var="env=${{ env.ENV }} -var="project_name=${{ env.PROJECT_NAME }}"
 
   deploy-project-applications:
     runs-on: ubuntu-20.04
@@ -173,7 +173,7 @@ jobs:
   #     run: |
   #       echo 'Cleaning up EKS infrastructure for ${{ env.ENV }} Environment ===============>'
 
-  #       pushd "terraform/${{ env.ENV }}"; \
+  #       cd terraform/${{ env.ENV }}
   #       terraform destroy -auto-approve -var-file="vars.tfvars" -var="user_access_key=${{ secrets.AWS_ACCESS_KEY }}" \
   #                                     -var="user_secret_key=${{ secrets.AWS_SECRET_KEY }}" -var="aws_region=${{ secrets.AWS_REGION }}" \
-  #                                     -var="env=${{ env.ENV }} -var="project_name=${{ env.PROJECT_NAME }}"; popd
+  #                                     -var="env=${{ env.ENV }} -var="project_name=${{ env.PROJECT_NAME }}"
