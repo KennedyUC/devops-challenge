@@ -151,6 +151,8 @@ jobs:
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/cloud/deploy.yaml
         fi
 
+        sleep 3m
+
     - name: Deploy Application to EKS
       run: make deploy-apps
 
