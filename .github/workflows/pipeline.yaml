@@ -47,7 +47,7 @@ jobs:
 
   build-and-push-containers:
     runs-on: ubuntu-20.04
-    needs: set-environment
+    needs: [set-environment]
     env:
       ENV: ${{ needs.set-environment.outputs.ENV }}
       IMG_TAG: ${{ needs.set-environment.outputs.SHA }}
