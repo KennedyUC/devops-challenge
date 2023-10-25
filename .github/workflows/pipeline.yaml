@@ -41,16 +41,13 @@ jobs:
       id: commit-sha
       run: |
         echo "SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
-        
-    - name: Check Github SHA
-      run: echo "The Github SHA is ${{ steps.commit-sha.outputs.SHA }}"
 
   build-and-push-containers:
     runs-on: ubuntu-20.04
     needs: [set-environment]
     env:
-      ENV: ${{ needs.set-environment.outputs.ENV }}
-      IMG_TAG: ${{ needs.set-environment.outputs.SHA }}
+      ENV: ${{ steps.set-environment.outputs.env_name }}
+      IMG_TAG: ${{ steps.commit-sha.outputs.SHA }}
       
     steps:
     - name: Checkout GitHub Action
@@ -59,10 +56,10 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Check Github SHA
-      run: echo "The Github SHA is ${{ needs.set-environment.outputs.SHA }}"
+      run: echo "The Github SHA is ${{ env.IMG_TAG }}"
 
     - name: Check ENV
-      run: echo "The ENV is ${{ needs.set-environment.outputs.ENV }}"
+      run: echo "The ENV is ${{ env.ENV }}"
 
     # - name: Create .env for the Flask App
     #   run: |
