@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vue-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vue-web
+  template:
+    metadata:
+      labels:
+        app: vue-web
+    spec:
+      containers:
+      - name: vue-web
+        image: kennedyuche/vue-web:v1.0.0
+        ports:
+        - containerPort: 80
