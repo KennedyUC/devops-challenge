@@ -40,7 +40,7 @@ jobs:
     - name: Get short SHA
       id: commit-sha
       run: |
-        echo "SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
+        echo "SHA=$(echo ${GITHUB_SHA} | cut -c1-4)" >> $GITHUB_OUTPUT
         
     - name: Check Github SHA
       run: echo "The Github SHA is ${{ steps.commit-sha.outputs.SHA }}"
