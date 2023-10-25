@@ -8,7 +8,7 @@ on:
       - main
 
 env: 
-  IMG_TAG: ${{ github.sha | slice(0,4) }}
+  IMG_TAG: ${{ github.sha }}
   PROJECT_NAME: devops-challenge
   API_DEPLOYMENT: flask-api
   WEB_DEPLOYMENT: vue-web
