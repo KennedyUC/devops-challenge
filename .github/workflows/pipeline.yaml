@@ -174,6 +174,7 @@ jobs:
         echo 'Cleaning up EKS infrastructure for ${{ env.ENV }} Environment ===============>'
 
         cd terraform/${{ env.ENV }}
+        terraform init
         terraform destroy -auto-approve -var-file="vars.tfvars" -var="user_access_key=${{ secrets.AWS_ACCESS_KEY }}" \
                                       -var="user_secret_key=${{ secrets.AWS_SECRET_KEY }}" -var="aws_region=${{ secrets.AWS_REGION }}" \
                                       -var="env=${{ env.ENV }}" -var="project_name=${{ env.PROJECT_NAME }}"
