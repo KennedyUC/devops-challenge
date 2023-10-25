@@ -4,6 +4,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: kubeflow-self-signing-issuer
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
   name: app-ingress
 spec:
   ingressClassName: nginx
