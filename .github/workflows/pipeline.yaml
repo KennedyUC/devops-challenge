@@ -13,7 +13,7 @@ env:
   WEB_DEPLOYMENT: vue-web
 
 jobs:
-  set-environment:
+  setup-environment:
     runs-on: ubuntu-latest
     outputs:
       env_name: ${{ steps.project-env.outputs.env_name }}
@@ -50,10 +50,10 @@ jobs:
 
   build-and-push-containers:
     runs-on: ubuntu-20.04
-    needs: [set-environment]
+    needs: [setup-environment]
     env:
-      ENV: ${{ needs.set-environment.outputs.env_name }}
-      IMG_TAG: ${{ needs.set-environment.outputs.sha }}
+      ENV: ${{ needs.setup-environment.outputs.env_name }}
+      IMG_TAG: ${{ needs.setup-environment.outputs.sha }}
       
     steps:
     - name: Checkout GitHub Action
