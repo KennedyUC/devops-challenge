@@ -16,6 +16,14 @@ skaffold-build:
 	@echo 'Building Project Container Images for the $(ENV) Environment with tag=$(TAG)'
 	@skaffold build  --platform linux/amd64 --default-repo=$(DOCKER_USERNAME) --push --tag $(ENV)-$(TAG)
 
+.PHONY: install-ingress
+install-ingress:
+	if kubectl get deployment -n ingress-nginx ingress-nginx-controller &> /dev/null; then
+    	echo "Ingress controller already exists, skipping installation."
+	else
+		echo 'Installing Nginx Ingress Controller'
+		kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/cloud/deploy.yaml
+
 .PHONY: deploy-apps
 deploy-apps:
 	@echo 'Deploying the applications to k8s cluster ==============>'
