@@ -25,13 +25,13 @@ jobs:
       id: project-env
       run: |
         if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-          echo "::set-output name=env_name::prod"
+          echo "env_name=prod >> $GITHUB_OUTPUT"
         elif [ "${{ github.ref }}" = "refs/heads/dev" ]; then
-          echo "::set-output name=env_name::dev"
+          echo "env_name=dev>> $GITHUB_OUTPUT"
         elif [ "${{ github.ref }}" = "refs/heads/stg" ]; then
-          echo "::set-output name=env_name::stg"
+          echo "env_name=stg >> $GITHUB_OUTPUT"
         else
-          echo "::set-output name=env_name::dev"
+          echo "env_name=dev>> $GITHUB_OUTPUT"
         fi
 
     - name: Check Branch Name
