@@ -4,30 +4,57 @@ on:
   push:
     branches:
       - dev
+      - stg
+      - main
 
-env:
-  IMG_TAG: v1.0.0
-  ENV: dev
+env: 
+  IMG_TAG: ${{ github.sha::4 }}
+  PROJECT_NAME: devops-challenge
+  API_DEPLOYMENT: flask-api
+  WEB_DEPLOYMENT: vue-web
 
 jobs:
-  build-and-push-container:
+  extract_branch:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set Branch Name
+      id: branch_name
+      run: echo "::set-output name=branch::$(echo $GITHUB_REF | awk -F'/' '{print $3}')"
+
+    - name: Display Branch Name
+      run: echo "The branch name is ${{ steps.branch_name.outputs.branch }}"
+
+  build-and-push-containers:
     runs-on: ubuntu-20.04
+    needs: extract_branch
+
+    env:
+      ENV: ${{ if eq(needs.extract_branch.outputs.branch, 'main'), 'prod', needs.extract_branch.outputs.branch }}
+
     steps:
     - name: Checkout GitHub Action
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Print the active environment
+      run: echo 'Active Environment => ${{ env.ENV }}'
+
     - name: Create .env for the Flask App
       run: |
-        echo 'Creating .env file for the Flask App'
+        echo 'Creating Flask App .env file for ${{ env.ENV }} environment'
         pushd "components/api"; echo ZONE_ID=${{ secrets.ZONE_ID }} > .env; popd;
         pushd "components/api"; echo CF_API_KEY=${{ secrets.CF_API_KEY }} >> .env; popd;
         pushd "components/api"; echo CF_API_EMAIL=${{ secrets.CF_API_EMAIL }} >> .env; popd;
         
     - name: Create .env file for Vue Web App
       run: |
-        echo 'Creating .env file for the Vue Web App'
+        echo 'Creating Vue Web App .env file for ${{ env.ENV }} environment'
         pushd "components/web"; echo VUE_APP_PROXY_URL=http://127.0.0.1:5000/ > .env; popd;
 
     - name: Install Skaffold for App Builds
@@ -43,18 +70,8 @@ jobs:
       run: |
         make skaffold-build DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} TAG=${{ env.IMG_TAG }} ENV=${{ env.ENV }}
 
-  #   - name: Build the web container image
-  #     run: |
-  #       docker build frontend -f containers/${{ env.WEB_DOCKERFILE }} -t ${{ secrets.DOCKER_USERNAME }}/${{ env.WEB_IMG_NAME }}:${{ github.sha }}
-
-  #   - name: Push the web and api images to the registry
-  #     run: |
-  #       echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
-  #       docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.API_IMG_NAME }}:${{ github.sha }}
-  #       docker push ${{ secrets.DOCKER_USERNAME }}/${{ env.WEB_IMG_NAME }}:${{ github.sha }}
-
-  # deploy-container-to-eks:
-  #   needs: build-and-push-container
+  # build-infrastructure:
+  #   needs: build-and-push-containers
   #   runs-on: ubuntu-20.04
   #   steps:
   #   - name: Checkout GitHub Action
@@ -62,19 +79,40 @@ jobs:
   #     with:
   #       token: ${{ secrets.GITHUB_TOKEN }}
 
-  #   - name: Authenticate to EKS
+  #   - name: Initialize Terraform Modules
+  #     run: pushd "terraform"; terraform init; popd;
+
+  #   - name: Configure AWS CLI
   #     run: |
   #       aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY }} --profile default
   #       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }} --profile default
   #       aws configure set default.region ${{ secrets.AWS_REGION }} --profile default
   #       aws configure set default.output csv --profile default
 
-  #       aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ secrets.EKS_CLUSTER }}
-
-  #   - name: Create namespace if doesn't exist
+  #   - name: Provision EKS with Terraform apply
   #     run: |
-  #       kubectl create namespace ${{ env.API_DEPLOYMENT }} --dry-run -o json | kubectl apply -f -
-  #       kubectl create namespace ${{ env.WEB_DEPLOYMENT }} --dry-run -o json | kubectl apply -f -
+  #       terraform apply -auto-approve -var-file="vars.tfvars" -var="user_access_key=${{ secrets.AWS_ACCESS_KEY }}" \
+  #                                     -var="user_secret_key=${{ secrets.AWS_SECRET_KEY }}" -var="aws_region=${{ secrets.AWS_REGION }}" \
+  #                                     -var="env=${{ env.ENV }} -var="project_name=${{ env.PROJECT_NAME }}"
+
+  # deploy-application:
+  #   needs: build-infrastructure
+  #   runs-on: ubuntu-20.04
+  #   steps:
+  #   - name: Checkout GitHub Action
+  #     uses: actions/checkout@v3
+  #     with:
+  #       token: ${{ secrets.GITHUB_TOKEN }}
+
+  #   - name: Configure AWS CLI
+  #     run: |
+  #       aws configure set aws_access_key_id ${{secrets.AWS_ACCESS_KEY }} --profile default
+  #       aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_KEY }} --profile default
+  #       aws configure set default.region ${{ secrets.AWS_REGION }} --profile default
+  #       aws configure set default.output csv --profile default
+
+  #   - name: Authenticate to AWS EKS
+  #     run: aws eks --region ${{ secrets.AWS_REGION }} update-kubeconfig --name ${{ env.PROJECT_NAME }}-${{ env.ENV }}
 
   #   - name: Install yq for updating the deployment manifests
   #     run: |
@@ -84,16 +122,13 @@ jobs:
 
   #   - name: Update kubernetes deployment manifest
   #     run: |
-  #       yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/${{ env.API_IMG_NAME }}:${{ github.sha }}"' kubernetes/backend/api-deployment.yaml
-  #       yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/${{ env.WEB_IMG_NAME }}:${{ github.sha }}"' kubernetes/frontend/web-deployment.yaml
+  #       yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/flask-api:${{ env.ENV }}-${{ env.IMG_TAG }}"' kubernetes/api-deployment.yaml
+  #       yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/vue-web:${{ env.ENV }}-${{ env.IMG_TAG }}"' kubernetes/web-deployment.yaml
 
   #   - name: Deploy application to EKS
-  #     run: |
-  #       kubectl apply -f kubernetes/database
-  #       kubectl apply -f kubernetes/backend
-  #       kubectl apply -f kubernetes/frontend
+  #     run: make deploy-apps
 
-  #   - name: View Rollout Status
+  #   - name: View Application Rollout Status
   #     run: |
-  #       kubectl -n ${{ env.API_DEPLOYMENT }} rollout status deployment/${{ env.API_DEPLOYMENT }}
-  #       kubectl -n ${{ env.WEB_DEPLOYMENT }} rollout status deployment/${{ env.WEB_DEPLOYMENT }}
+  #       kubectl rollout status deployment/${{ env.API_DEPLOYMENT }}
+  #       kubectl rollout status deployment/${{ env.WEB_DEPLOYMENT }}
