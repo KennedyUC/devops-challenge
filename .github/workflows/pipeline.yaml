@@ -29,9 +29,9 @@ jobs:
       id: project-env
       run: |
         if [ "${{ steps.branch_name.outputs.branch }}" == "main" ]; then
-          echo "::set-output name=ENV::prod"
+          echo "ENV=prod" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=ENV::${{ steps.branch_name.outputs.branch }}"
+          echo "ENV=${{ steps.branch_name.outputs.branch }}" >> $GITHUB_OUTPUT
         fi
         echo "The environment is ${{ steps.project-env.outputs.ENV }}"
 
@@ -39,6 +39,7 @@ jobs:
       id: commit-sha
       run: |
         echo "::set-output name=SHA::$(echo ${GITHUB_SHA} | cut -c1-7)"
+        echo "SHA=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
         echo "The Github SHA is ${{ steps.commit-sha.outputs.SHA }}"
 
 
