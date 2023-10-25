@@ -143,7 +143,13 @@ jobs:
         yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKER_USERNAME }}/vue-web:${{ env.ENV }}-${{ env.IMG_TAG }}"' kubernetes/web-deployment.yaml
 
     - name: Install Ingress Controller
-      run: make install-ingress
+      run: |
+        if kubectl get deployment -n ingress-nginx ingress-nginx-controller &> /dev/null; then
+          echo "Ingress controller already exists, skipping installation"
+        else
+          echo "Installing Nginx Ingress Controller"
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/cloud/deploy.yaml
+        fi
 
     - name: Deploy Application to EKS
       run: make deploy-apps
