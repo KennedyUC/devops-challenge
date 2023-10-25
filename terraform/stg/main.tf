@@ -16,4 +16,6 @@ module "eks_config" {
   node_disk_size        = var.node_disk_size
   ami_type              = var.ami_type
   capacity_type         = var.capacity_type
+  cluster_role          = "${var.project_name}-${var.env}-cluster"
+  nodes_role            = "${var.project_name}-${var.env}-node"
 }
