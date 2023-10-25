@@ -8,13 +8,12 @@ on:
       - main
 
 env: 
-  IMG_TAG: ${{ github.sha }}
   PROJECT_NAME: devops-challenge
   API_DEPLOYMENT: flask-api
   WEB_DEPLOYMENT: vue-web
 
 jobs:
-  extract_branch:
+  set_environment:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -26,27 +25,32 @@ jobs:
       id: branch_name
       run: echo "::set-output name=branch::$(echo $GITHUB_REF | awk -F'/' '{print $3}')"
 
-    - name: Display Branch Name
-      run: echo "The branch name is ${{ steps.branch_name.outputs.branch }}"
+    - name: Set the Environment Name
+      id: project-env
+      run: |
+        if [ "${{ steps.branch_name.outputs.branch }}" == "main" ]; then
+          echo "::set-output name=ENV::prod"
+        else
+          echo "::set-output name=ENV::${{ steps.branch_name.outputs.branch }}"
+        fi
+        echo "The environment is $ENV"
+
+    - name: Get short SHA
+      id: commit-sha
+      run: echo "::set-output name=SHA::$(echo ${GITHUB_SHA} | cut -c1-7)"
 
   build-and-push-containers:
     runs-on: ubuntu-20.04
-    needs: extract_branch
-
+    needs: set_environment
+    env:
+      ENV: ${{ needs.set_environment.outputs.ENV }}
+      IMG_TAG: ${{ needs.set_environment.outputs.SHA }}
+      
     steps:
     - name: Checkout GitHub Action
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Set the Environment Name
-      run: |
-        if [ "${{ needs.extract_branch.outputs.branch }}" == "main" ]; then
-          echo "::set-env name=ENV::prod"
-        else
-          echo "::set-env name=ENV::${{ needs.extract_branch.outputs.branch }}"
-        fi
-        echo "The environment is $ENV"
 
     - name: Create .env for the Flask App
       run: |
