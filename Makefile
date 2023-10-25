@@ -19,10 +19,11 @@ skaffold-build:
 .PHONY: install-ingress
 install-ingress:
 	if kubectl get deployment -n ingress-nginx ingress-nginx-controller &> /dev/null; then
-    	echo "Ingress controller already exists, skipping installation."
+    	echo "Ingress controller already exists, skipping installation"
 	else
-		echo 'Installing Nginx Ingress Controller'
+		echo "Installing Nginx Ingress Controller"
 		kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/cloud/deploy.yaml
+	fi
 
 .PHONY: deploy-apps
 deploy-apps:
