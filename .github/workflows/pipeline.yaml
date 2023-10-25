@@ -49,8 +49,8 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [set-environment]
     env:
-      ENV: ${{ set-environment.steps.project-env.outputs.ENV }}
-      IMG_TAG: ${{ set-environment.steps.commit-sha.outputs.SHA }}
+      ENV: ${{ needs.set-environment.project-env.outputs.ENV }}
+      IMG_TAG: ${{ needs.set-environment.commit-sha.outputs.SHA }}
       
     steps:
     - name: Checkout GitHub Action
