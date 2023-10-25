@@ -8,7 +8,7 @@ on:
       - main
 
 env: 
-  IMG_TAG: ${{ github.sha::4 }}
+  IMG_TAG: ${{ github.sha | slice(0,4) }}
   PROJECT_NAME: devops-challenge
   API_DEPLOYMENT: flask-api
   WEB_DEPLOYMENT: vue-web
@@ -33,17 +33,20 @@ jobs:
     runs-on: ubuntu-20.04
     needs: extract_branch
 
-    env:
-      ENV: ${{ if eq(needs.extract_branch.outputs.branch, 'main'), 'prod', needs.extract_branch.outputs.branch }}
-
     steps:
     - name: Checkout GitHub Action
       uses: actions/checkout@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Print the active environment
-      run: echo 'Active Environment => ${{ env.ENV }}'
+    - name: Set the Environment Name
+      run: |
+        if [ "${{ needs.extract_branch.outputs.branch }}" == "main" ]; then
+          echo "::set-env name=ENV::prod"
+        else
+          echo "::set-env name=ENV::${{ needs.extract_branch.outputs.branch }}"
+        fi
+        echo "The environment is $ENV"
 
     - name: Create .env for the Flask App
       run: |
