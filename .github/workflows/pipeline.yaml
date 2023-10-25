@@ -13,7 +13,7 @@ env:
   WEB_DEPLOYMENT: vue-web
 
 jobs:
-  set_environment:
+  set-environment:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -45,10 +45,10 @@ jobs:
 
   # build-and-push-containers:
   #   runs-on: ubuntu-20.04
-  #   needs: set_environment
+  #   needs: set-environment
   #   env:
-  #     ENV: ${{ needs.set_environment.outputs.ENV }}
-  #     IMG_TAG: ${{ needs.set_environment.outputs.SHA }}
+  #     ENV: ${{ needs.set-environment.outputs.ENV }}
+  #     IMG_TAG: ${{ needs.set-environment.outputs.SHA }}
       
   #   steps:
   #   - name: Checkout GitHub Action
