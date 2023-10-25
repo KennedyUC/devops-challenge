@@ -59,10 +59,10 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Check Github SHA
-      run: echo "The Github SHA is $IMG_TAG"
+      run: echo "The Github SHA is ${{ needs.set-environment.outputs.SHA }}"
 
     - name: Check ENV
-      run: echo "The ENV is $ENV"
+      run: echo "The ENV is ${{ needs.set-environment.outputs.ENV }}"
 
     # - name: Create .env for the Flask App
     #   run: |
