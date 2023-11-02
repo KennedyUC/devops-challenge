@@ -3,12 +3,16 @@ from flask_cors import CORS
 import requests
 import os
 from dotenv import load_dotenv
+from prometheus_client import Counter, start_http_server
 
 # Load environment variables from .env file during development
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
+
+# Define the metrics
+request_counter = Counter('http_requests_total', 'Total HTTP Requests', ['method', 'status'])
 
 ZONE_ID = os.getenv('ZONE_ID')
 CF_API_KEY = os.getenv('CF_API_KEY')
@@ -29,10 +33,16 @@ def proxy():
             url=API_URL,
             headers=headers
         )
+        # Increment the request counter for successful requests
+        request_counter.labels(method='GET', status=response.status_code).inc()
     except Exception as e:
+        # Increment the request counter for failed requests
+        request_counter.labels(method='GET', status='error').inc()
         return jsonify({'error': str(e)}), 500
 
     return response.json()
 
 if __name__ == '__main__':
+    # Start the servers
+    start_http_server(8000)
     app.run(host='0.0.0.0', port=5000)

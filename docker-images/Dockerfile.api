@@ -47,7 +47,7 @@ COPY --from=build .env .env
 ENV PYTHONPATH "/api/.venv/bin:/api/.venv/lib/python3.10/site-packages"
 
 # Expose the Flask apllication port number
-EXPOSE 5000
+EXPOSE 5000 8000
 
 # Start the Flask application once the image is run
 CMD python src/main.py

@@ -19,7 +19,12 @@ skaffold-build:
 .PHONY: deploy-apps
 deploy-apps:
 	@echo 'Deploying the applications to k8s cluster ==============>'
-	@kubectl apply -f kubernetes
+	@pushd "kubernetes"; kustomize build application | kubectl apply -f -; popd
+
+.PHONY: setup-monitoring
+setup-monitoring:
+	@echo 'Deploying the monitoring setup to k8s cluster ==============>'
+	@pushd "kubernetes"; kustomize build monitoring | kubectl apply -f -; popd
 
 .PHONY: run-app
 run-app:
