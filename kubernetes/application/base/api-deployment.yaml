@@ -14,6 +14,7 @@ spec:
     spec:
       containers:
       - name: flask-api
-        image: kennedyuche/flask-api:v1.0.0
+        image: default
         ports:
-        - containerPort: 5000
+        - name: flask-api
+          containerPort: 5000
